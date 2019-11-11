@@ -1,5 +1,7 @@
-from NNet.python.nnet import *
-nnet = NNet('../nnet/TestNetwork.nnet')
+import sys
+sys.path.append('../../my_marabou/Marabou')
+from nnet import *
+nnet = NNet.fromfilename('../nnet/TestNetwork.nnet')
 print("Num Inputs: %d"%nnet.num_inputs())
 print("Num Outputs: %d"%nnet.num_outputs())
 print("One evaluation:")

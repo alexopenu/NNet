@@ -1,12 +1,25 @@
 import numpy as np
+import sys
+sys.path.append('../utils')
+from writeNNet import writeNNet
+
 
 class NNet():
     """
-    Class that represents a fully connected ReLU network from a .nnet file
+    Class that represents a fully connected ReLU network in .nnet format
     
     Args:
         filename (str): A .nnet file to load
-    
+
+        or
+
+        weights (list): Weight matrices in the network order
+        biases (list): Bias vectors in the network order
+        inputMins (list): Minimum values for each input
+        inputMaxes (list): Maximum values for each input
+        means (list): Mean values for each input and a mean value for all outputs. Used to normalize inputs/outputs
+        ranges (list): Range values for each input and a range value for all outputs. Used to normalize inputs/outputs
+
     Attributes:
         numLayers (int): Number of weight matrices or bias vectors in neural network
         layerSizes (list of ints): Size of input layer, hidden layers, and output layer
@@ -19,12 +32,78 @@ class NNet():
         weights (list of numpy arrays): Weight matrices in network
         biases (list of numpy arrays): Bias vectors in network
     """
-    def __init__ (self, filename):
+
+    def __init__(self, weights, biases, inputMinimums, inputMaximums, inputMeans, inputRanges, numLayers = -1, layerSizes = [], inputSize = -1, outputSize = -1):
+
+        # Compute network parameters that can be computed from the rest
+        _numLayers = len(weights)
+        _inputSize = weights[0].shape[0]
+        _outputSize = len(biases[-1])
+
+        # Find maximum size of any hidden layer
+        _maxLayerSize = _inputSize
+        for b in biases:
+            if len(b) > _maxLayerSize:
+                _maxLayerSize = len(b)
+        #Create a list of layer Sizes
+        _layerSizes = []
+        _layerSizes.append(_inputSize)
+        for b in biases:
+            _layerSizes.append(len(b))
+
+
+
+        if numLayers == -1:
+            numLayers = _numLayers
+        if inputSize == -1:
+            inputSize = _inputSize
+        if outputSize == -1:
+            outputSize = _outputSize
+        if layerSizes == []:
+            layerSizes = _layerSizes
+
+
+        #Checking that the parameters provided in the arguments makes what we have computed
+
+        '''
+        inputError = False
+        if numLayers != _numLayers:
+            numLayers = _numLayers
+            inputError = True
+        if inputSize != _inputSize:
+            inputSize = _inputSize
+            inputError = True
+        if outputSize != _outputSize:
+            outputSize = _outputSize
+            inputError = True
+        if layerSizes != _layerSizes:
+            layerSizes = _layerSizes
+            inputError = True
+
+        if inputError:
+            print("\nSomething was wrong with the arguments, corrected!\n")
+        '''
+
+        self.numLayers = numLayers
+        self.layerSizes = layerSizes
+        self.inputSize = inputSize
+        self.outputSize = outputSize
+        self.mins = inputMinimums
+        self.maxes = inputMaximums
+        self.means = inputMeans
+        self.ranges = inputRanges
+        self.weights = weights
+        self.biases = biases
+
+
+
+    @classmethod
+    def fromfilename(cls, filename):
         with open(filename) as f:
             line = f.readline()
             cnt = 1
             while line[0:2] == "//":
-                line=f.readline() 
+                line=f.readline()
                 cnt+= 1
             #numLayers does't include the input layer!
             numLayers, inputSize, outputSize, _ = [int(x) for x in line.strip().split(",")[:-1]]
@@ -68,7 +147,7 @@ class NNet():
                     line=f.readline()
                     x = float(line.strip().split(",")[0])
                     biases[layernum][i] = x
-
+            '''
             self.numLayers = numLayers
             self.layerSizes = layerSizes
             self.inputSize = inputSize
@@ -79,11 +158,16 @@ class NNet():
             self.ranges = inputRanges
             self.weights = weights
             self.biases = biases
-            
+            '''
+
+            return cls(weights, biases, inputMinimums, inputMaximums, inputMeans, inputRanges, numLayers, layerSizes, inputSize, outputSize)
+
+
     def evaluate_network(self, inputs):
+
         '''
         Evaluate network using given inputs
-        
+
         Args:
             inputs (numpy array of floats): Network inputs to be evaluated
             
@@ -164,3 +248,7 @@ class NNet():
     def num_outputs(self):
         ''' Get network output size'''
         return self.outputSize
+
+    def write_to_file(self,fileName):
+        '''write network into a file'''
+        writeNNet(self.weights, self.biases, self.mins, self.maxes, self.means, self.ranges, fileName)
