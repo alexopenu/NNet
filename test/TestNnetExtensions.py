@@ -31,8 +31,8 @@ print(filecmp.cmp(fileOrigin,fileTarget2)) #True
 
 nnet = NNet.fromfilename(fileOrigin)
 #nnet.write_to_file(fileTarget2)
-writeNNet(nnet.weights, nnet.biases, nnet.mins, nnet.maxes, nnet.means, nnet.ranges, fileTarget2)
-print(filecmp.cmp(fileOrigin,fileTarget2)) #Error!
+writeNNet(nnet.weights, nnet.biases, nnet.mins, nnet.maxes, nnet.means, nnet.ranges, fileTarget2) #Error!
+print(filecmp.cmp(fileOrigin,fileTarget2))
 
 
 
