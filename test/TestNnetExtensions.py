@@ -28,17 +28,16 @@ print(filecmp.cmp(fileOrigin,fileTarget2)) #True
 writeNNet(nnet2.weights,nnet2.biases,nnet2.mins,nnet2.maxes,nnet2.means,nnet2.ranges,fileTarget2)
 print(filecmp.cmp(fileOrigin,fileTarget2)) #True
 
+'''
 print nnet2.numLayers
 x = splitNNet(nnet2,5)
 print x
-
-
 '''
 nnet = NNet.fromfilename(fileOrigin)
 #nnet.write_to_file(fileTarget2)
 writeNNet(nnet.weights, nnet.biases, nnet.mins, nnet.maxes, nnet.means, nnet.ranges, fileTarget2) #Error!
 print(filecmp.cmp(fileOrigin,fileTarget2))
-'''
+
 
 
 
