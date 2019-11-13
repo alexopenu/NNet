@@ -37,7 +37,7 @@ print x
 
 
 nnet = NNet.fromfilename(fileOrigin)
-#nnet.write_to_file(fileTarget2)
+nnet.write_to_file(fileTarget2)
 
 print(filecmp.cmp(fileOrigin,fileTarget2))
 

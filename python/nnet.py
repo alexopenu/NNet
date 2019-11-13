@@ -250,7 +250,7 @@ class NNet():
             inputs (numpy array of floats): Network inputs to be evaluated
 
         Returns:
-            (numpy array of floats): Network output
+            (numpy array of floats): Network (INCLUDING a ReLU output layer) output
         '''
         numLayers = self.numLayers
         inputSize = self.inputSize
@@ -290,7 +290,7 @@ class NNet():
             inputs (numpy array of floats): Array of network inputs to be evaluated.
 
         Returns:
-            (numpy array of floats): Network outputs for each set of inputs
+            (numpy array of floats): Network (INCLUDING a ReLU output layer) outputs for each set of inputs
         '''
 
         numLayers = self.numLayers
@@ -320,7 +320,7 @@ class NNet():
         for layer in range(numLayers - 1):
             inputsNorm = np.maximum(np.dot(weights[layer], inputsNorm) + biases[layer].reshape((len(biases[layer]), 1)),
                                     0)
-        outputs = np.dot(weights[-1], inputsNorm) + biases[-1].reshape((len(biases[-1]), 1))
+        outputs = np.maximum(np.dot(weights[-1], inputsNorm) + biases[-1].reshape((len(biases[-1]), 1)),0)
 
         # # Undo output normalization
         # for i in range(outputSize):
