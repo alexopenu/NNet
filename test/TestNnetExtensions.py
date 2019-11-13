@@ -34,8 +34,8 @@ x = splitNNet(nnet2,5)
 print x
 '''
 nnet = NNet.fromfilename(fileOrigin)
-#nnet.write_to_file(fileTarget2)
-writeNNet(nnet.weights, nnet.biases, nnet.mins, nnet.maxes, nnet.means, nnet.ranges, fileTarget2) #Error!
+nnet.write_to_file(fileTarget2)
+#writeNNet(nnet.weights, nnet.biases, nnet.mins, nnet.maxes, nnet.means, nnet.ranges, fileTarget2)
 print(filecmp.cmp(fileOrigin,fileTarget2))
 
 
