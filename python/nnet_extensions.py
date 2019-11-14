@@ -20,19 +20,23 @@ def splitNNet(nnet,l):
 
 
     mins1 = nnet.mins
-    maxs2 = nnet.maxes
+    maxs1 = nnet.maxes
 
     means1 = nnet.means
-    ranges2 = nnet.ranges
+    ranges1 = nnet.ranges
 
 
 
-    maxs1 = [0]*new_input_size  #Not sure!
+    maxs2 = [0]*new_input_size  #Not sure!
     mins2 = [0]*new_input_size  #Not sure!
-    means2 =[0]*new_input_size  #Not sure!
-    ranges1 =[0]*new_input_size #Not sure!
+    means2 = [0] * (new_input_size+1)  # Not sure!
+    ranges2 = [0] * (new_input_size+1)  # Not sure!
 
-    #NOTE that these choices may affect the evaluation!
+    means2[-1] = nnet.means[-1]
+    ranges2[-1] = nnet.ranges[-1]
+
+
+    #NOTE that these choices may affect the evaluations! One should be careful with applying normalization.
 
     nnet1 = NNet(weights1,biases1,mins1,maxs1,means1,ranges1)
     nnet2 = NNet(weights2,biases2,mins2,maxs2,means2,ranges2)

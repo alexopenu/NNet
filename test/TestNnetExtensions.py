@@ -57,16 +57,57 @@ print nnet.numLayers
 print nnet_1.numLayers
 print nnet_2.numLayers
 
+'''
+print nnet.mins
+print nnet.maxes
+print nnet.means
+print nnet.ranges
+print nnet_1.mins
+print nnet_1.maxes
+print nnet_1.means
+print nnet_1.ranges
+'''
 
+#testing without normalization
 
 outputs=nnet.evaluate_network_nonorm([15299.0, 0.0, -3.1, 600.0, 500.0])
 print(outputs)
+outputs_ = nnet.evaluate_network([15299.0, 0.0, -3.1, 600.0, 500.0],normalize_inputs=False,normalize_outputs=False)
+print(outputs_)
+print(outputs == outputs_)
 
 
 outputs1 = nnet_1.evaluate_network_nonorm([15299.0, 0.0, -3.1, 600.0, 500.0])
 print(len(outputs1))
+outputs1_ = nnet_1.evaluate_network([15299.0, 0.0, -3.1, 600.0, 500.0],normalize_inputs=False,normalize_outputs=False,activate_output_layer=True)
+print(len(outputs1_))
+
 #print(outputs1)
+outputs1 = np.maximum(outputs1,0)
+
+print(outputs1 == outputs1_)
+
 outputs2 = nnet_2.evaluate_network_nonorm(outputs1)
+outputs2_ = nnet_2.evaluate_network(outputs1, normalize_inputs=False, normalize_outputs=False)
+print(outputs2)
+print(outputs2_)
+
+print(outputs == outputs2)
+print(outputs == outputs2_)
+
+#testing with normalization
+
+outputs = nnet.evaluate_network([15299.0, 0.0, -3.1, 600.0, 500.0])
+
+print(outputs)
+
+
+outputs1 = nnet_1.evaluate_network([15299.0, 0.0, -3.1, 600.0, 500.0],normalize_inputs=True,normalize_outputs=False,activate_output_layer=True)
+
+print(len(outputs1))
+
+outputs2 = nnet_2.evaluate_network(outputs1,normalize_inputs=False, normalize_outputs=True)
+
 print(outputs2)
 
 print(outputs == outputs2)
@@ -75,10 +116,11 @@ print(outputs == outputs2)
 print(len(outputs) == len(outputs2))
 print len(outputs)
 
-x = [1.0,2.0]
-y = [1.0,4.0]
+x = np.array([1.0,2.0])
+y = np.array([1.0,2.0])
+print x
 
-print x==y
+print (x==y)
 
 x = [1,2]
 y = [1,2]

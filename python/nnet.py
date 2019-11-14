@@ -4,6 +4,10 @@ sys.path.append('../utils')
 from writeNNet import writeNNet
 
 
+def output_activation(a, b):
+    return a
+
+
 class NNet():
     """
     Class that represents a fully connected ReLU network in .nnet format
@@ -37,7 +41,7 @@ class NNet():
 
         # Compute network parameters that can be computed from the rest
         _numLayers = len(weights)
-        _inputSize = weights[0].shape[0]
+        _inputSize = len(inputMinimums)
         _outputSize = len(biases[-1])
 
         # Find maximum size of any hidden layer
@@ -65,24 +69,29 @@ class NNet():
 
         #Checking that the parameters provided in the arguments makes what we have computed
 
-        '''
+
         inputError = False
         if numLayers != _numLayers:
             numLayers = _numLayers
             inputError = True
+            errorPlace = 1
         if inputSize != _inputSize:
             inputSize = _inputSize
             inputError = True
+            errorPlace = 2
         if outputSize != _outputSize:
             outputSize = _outputSize
             inputError = True
+            errorPlace = 3
         if layerSizes != _layerSizes:
             layerSizes = _layerSizes
             inputError = True
+            errorPlace = 4
+
 
         if inputError:
-            print("\nSomething was wrong with the arguments, corrected!\n")
-        '''
+            print("\nSomething was wrong with the arguments, corrected! Error code %d\n",errorPlace)
+
 
         self.numLayers = numLayers
         self.layerSizes = layerSizes
@@ -163,7 +172,7 @@ class NNet():
             return cls(weights, biases, inputMinimums, inputMaximums, inputMeans, inputRanges, numLayers, layerSizes, inputSize, outputSize)
 
 
-    def evaluate_network(self, inputs):
+    def evaluate_network(self, inputs, normalize_inputs = True, normalize_outputs = True, activate_output_layer = False):
 
         '''
         Evaluate network using given inputs
@@ -181,26 +190,37 @@ class NNet():
         weights = self.weights
 
         # Prepare the inputs to the neural network
-        inputsNorm = np.zeros(inputSize)
-        for i in range(inputSize):
-            if inputs[i]<self.mins[i]:
-                inputsNorm[i] = (self.mins[i]-self.means[i])/self.ranges[i]
-            elif inputs[i]>self.maxes[i]:
-                inputsNorm[i] = (self.maxes[i]-self.means[i])/self.ranges[i] 
-            else:
-                inputsNorm[i] = (inputs[i]-self.means[i])/self.ranges[i] 
+        if (normalize_inputs):
+            inputsNorm = np.zeros(inputSize)
+            for i in range(inputSize):
+                if inputs[i]<self.mins[i]:
+                    inputsNorm[i] = (self.mins[i]-self.means[i])/self.ranges[i]
+                elif inputs[i]>self.maxes[i]:
+                    inputsNorm[i] = (self.maxes[i]-self.means[i])/self.ranges[i]
+                else:
+                    inputsNorm[i] = (inputs[i]-self.means[i])/self.ranges[i]
+        else:
+            inputsNorm = inputs
+
+
 
         # Evaluate the neural network
         for layer in range(numLayers-1):
             inputsNorm = np.maximum(np.dot(weights[layer],inputsNorm)+biases[layer],0)
-        outputs = np.dot(weights[-1],inputsNorm)+biases[-1]
+
+        if (activate_output_layer):
+            outputs = np.maximum(np.dot(weights[-1],inputsNorm)+biases[-1],0)
+        else:
+            outputs = np.dot(weights[-1],inputsNorm)+biases[-1]
 
         # Undo output normalization
-        for i in range(outputSize):
-            outputs[i] = outputs[i]*self.ranges[-1]+self.means[-1]
+        if (normalize_outputs):
+            for i in range(outputSize):
+                outputs[i] = outputs[i]*self.ranges[-1]+self.means[-1]
+
         return outputs
 
-    def evaluate_network_multiple(self,inputs):
+    def evaluate_network_multiple(self,inputs, normalize_inputs = True, normalize_outputs = True, activate_output_layer = False):
         '''
         Evaluate network using multiple sets of inputs
         
@@ -220,25 +240,36 @@ class NNet():
 
         # Prepare the inputs to the neural network
         numInputs = inputs.shape[1]
-        inputsNorm = np.zeros((inputSize,numInputs))
-        for i in range(inputSize):
-            for j in range(numInputs):
-                if inputs[i,j]<self.mins[i]:
-                    inputsNorm[i,j] = (self.mins[i]-self.means[i])/self.ranges[i]
-                elif inputs[i,j] > self.maxes[i]:
-                    inputsNorm[i,j] = (self.maxes[i]-self.means[i])/self.ranges[i] 
-                else:
-                    inputsNorm[i,j] = (inputs[i,j]-self.means[i])/self.ranges[i]
+
+        if (normalize_inputs):
+            inputsNorm = np.zeros((inputSize,numInputs))
+            for i in range(inputSize):
+                for j in range(numInputs):
+                    if inputs[i,j]<self.mins[i]:
+                        inputsNorm[i,j] = (self.mins[i]-self.means[i])/self.ranges[i]
+                    elif inputs[i,j] > self.maxes[i]:
+                        inputsNorm[i,j] = (self.maxes[i]-self.means[i])/self.ranges[i]
+                    else:
+                        inputsNorm[i,j] = (inputs[i,j]-self.means[i])/self.ranges[i]
+        else:
+            inputsNorm = inputs
+
 
         # Evaluate the neural network
         for layer in range(numLayers-1):
             inputsNorm = np.maximum(np.dot(weights[layer],inputsNorm)+biases[layer].reshape((len(biases[layer]),1)),0)
-        outputs = np.dot(weights[-1],inputsNorm)+biases[-1].reshape((len(biases[-1]),1))
+
+        if (activate_output_layer):
+            outputs = np.maximum(np.dot(weights[-1], inputsNorm) + biases[-1].reshape((len(biases[-1]), 1)),0)
+        else:
+            outputs = np.dot(weights[-1],inputsNorm)+biases[-1].reshape((len(biases[-1]),1))
 
         # Undo output normalization
-        for i in range(outputSize):
-            for j in range(numInputs):
-                outputs[i,j] = outputs[i,j]*self.ranges[-1]+self.means[-1]
+        if (normalize_outputs):
+            for i in range(outputSize):
+                for j in range(numInputs):
+                    outputs[i,j] = outputs[i,j]*self.ranges[-1]+self.means[-1]
+
         return outputs.T
 
     def evaluate_network_nonorm(self, inputs):
@@ -275,7 +306,7 @@ class NNet():
         # Evaluate the neural network
         for layer in range(numLayers - 1):
             inputsNorm = np.maximum(np.dot(weights[layer], inputsNorm) + biases[layer], 0)
-        outputs = np.maximum(np.dot(weights[-1], inputsNorm) + biases[-1],0)
+        outputs = output_activation(np.dot(weights[-1], inputsNorm) + biases[-1], 0)
 
         # # Undo output normalization
         # for i in range(outputSize):
@@ -319,8 +350,8 @@ class NNet():
         # Evaluate the neural network
         for layer in range(numLayers - 1):
             inputsNorm = np.maximum(np.dot(weights[layer], inputsNorm) + biases[layer].reshape((len(biases[layer]), 1)),
-                                    0)
-        outputs = np.maximum(np.dot(weights[-1], inputsNorm) + biases[-1].reshape((len(biases[-1]), 1)),0)
+                                           0)
+        outputs = output_activation(np.dot(weights[-1], inputsNorm) + biases[-1].reshape((len(biases[-1]), 1)),0)
 
         # # Undo output normalization
         # for i in range(outputSize):
